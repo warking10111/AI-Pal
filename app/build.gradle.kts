@@ -10,15 +10,18 @@ plugins {
 }
 
 android {
-  namespace = "com.example"
+  namespace = "com.aipal.app"
   compileSdk { version = release(36) { minorApiLevel = 1 } }
 
+  val propVersionCode = (project.findProperty("version.code") as? String)?.toIntOrNull() ?: 2
+  val propVersionName = (project.findProperty("version.name") as? String) ?: "0.2.0-alpha"
+
   defaultConfig {
-    applicationId = "com.aistudio.aipal.kxrghb"
+    applicationId = "com.aipal.app"
     minSdk = 24
     targetSdk = 36
-    versionCode = 1
-    versionName = "1.0"
+    versionCode = propVersionCode
+    versionName = propVersionName
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
@@ -133,3 +136,147 @@ dependencies {
   "ksp"(libs.androidx.room.compiler)
   "ksp"(libs.moshi.kotlin.codegen)
 }
+
+// Semantic Versioning Automation and Utilities
+data class SemVer(val major: Int, val minor: Int, val patch: Int, val preRelease: String?) {
+    override fun toString(): String {
+        return if (preRelease.isNullOrBlank()) {
+            "$major.$minor.$patch"
+        } else {
+            "$major.$minor.$patch-$preRelease"
+        }
+    }
+    
+    companion object {
+        fun parse(versionStr: String): SemVer {
+            val parts = versionStr.split("-", limit = 2)
+            val mainParts = parts[0].split(".")
+            val major = mainParts.getOrNull(0)?.toIntOrNull() ?: 0
+            val minor = mainParts.getOrNull(1)?.toIntOrNull() ?: 0
+            val patch = mainParts.getOrNull(2)?.toIntOrNull() ?: 0
+            val preRelease = parts.getOrNull(1)
+            return SemVer(major, minor, patch, preRelease)
+        }
+    }
+}
+
+tasks.register("printVersion") {
+    group = "versioning"
+    description = "Prints the current semantic version information."
+    doLast {
+        val propVersionCode = project.findProperty("version.code")?.toString()?.toIntOrNull() ?: 2
+        val propVersionName = project.findProperty("version.name")?.toString() ?: "0.2.0-alpha"
+        println("---------------------------------------------")
+        println("AI PAL Semantic Version Info:")
+        println("  Version Code: $propVersionCode")
+        println("  Version Name: $propVersionName")
+        println("---------------------------------------------")
+    }
+}
+
+tasks.register("bumpVersionCode") {
+    group = "versioning"
+    description = "Increments the version.code in gradle.properties."
+    doLast {
+        val file = file("${rootDir}/gradle.properties")
+        val lines = file.readLines().toMutableList()
+        var currentCode = 2
+        var updated = false
+        for (i in lines.indices) {
+            if (lines[i].trim().startsWith("version.code=")) {
+                currentCode = lines[i].substringAfter("=").trim().toIntOrNull() ?: 2
+                val newCode = currentCode + 1
+                lines[i] = "version.code=$newCode"
+                println("Bumping Version Code from $currentCode to $newCode")
+                updated = true
+                break
+            }
+        }
+        if (!updated) {
+            lines.add("version.code=3")
+            println("Added version.code=3")
+        }
+        file.writeText(lines.joinToString("\n") + "\n")
+    }
+}
+
+tasks.register("bumpPatch") {
+    group = "versioning"
+    description = "Increments the patch version in gradle.properties."
+    doLast {
+        val file = file("${rootDir}/gradle.properties")
+        val lines = file.readLines().toMutableList()
+        for (i in lines.indices) {
+            if (lines[i].trim().startsWith("version.name=")) {
+                val currentName = lines[i].substringAfter("=").trim()
+                val semVer = SemVer.parse(currentName)
+                val newSemVer = SemVer(semVer.major, semVer.minor, semVer.patch + 1, semVer.preRelease)
+                lines[i] = "version.name=$newSemVer"
+                println("Bumping Patch version from $currentName to $newSemVer")
+                break
+            }
+        }
+        file.writeText(lines.joinToString("\n") + "\n")
+    }
+}
+
+tasks.register("bumpMinor") {
+    group = "versioning"
+    description = "Increments the minor version and resets patch in gradle.properties."
+    doLast {
+        val file = file("${rootDir}/gradle.properties")
+        val lines = file.readLines().toMutableList()
+        for (i in lines.indices) {
+            if (lines[i].trim().startsWith("version.name=")) {
+                val currentName = lines[i].substringAfter("=").trim()
+                val semVer = SemVer.parse(currentName)
+                val newSemVer = SemVer(semVer.major, semVer.minor + 1, 0, semVer.preRelease)
+                lines[i] = "version.name=$newSemVer"
+                println("Bumping Minor version from $currentName to $newSemVer")
+                break
+            }
+        }
+        file.writeText(lines.joinToString("\n") + "\n")
+    }
+}
+
+tasks.register("bumpMajor") {
+    group = "versioning"
+    description = "Increments the major version and resets minor/patch in gradle.properties."
+    doLast {
+        val file = file("${rootDir}/gradle.properties")
+        val lines = file.readLines().toMutableList()
+        for (i in lines.indices) {
+            if (lines[i].trim().startsWith("version.name=")) {
+                val currentName = lines[i].substringAfter("=").trim()
+                val semVer = SemVer.parse(currentName)
+                val newSemVer = SemVer(semVer.major + 1, 0, 0, semVer.preRelease)
+                lines[i] = "version.name=$newSemVer"
+                println("Bumping Major version from $currentName to $newSemVer")
+                break
+            }
+        }
+        file.writeText(lines.joinToString("\n") + "\n")
+    }
+}
+
+tasks.register("promoteToRelease") {
+    group = "versioning"
+    description = "Removes the pre-release tag for a stable production release in gradle.properties."
+    doLast {
+        val file = file("${rootDir}/gradle.properties")
+        val lines = file.readLines().toMutableList()
+        for (i in lines.indices) {
+            if (lines[i].trim().startsWith("version.name=")) {
+                val currentName = lines[i].substringAfter("=").trim()
+                val semVer = SemVer.parse(currentName)
+                val newSemVer = SemVer(semVer.major, semVer.minor, semVer.patch, null)
+                lines[i] = "version.name=$newSemVer"
+                println("Promoting version from $currentName to $newSemVer (Stable)")
+                break
+            }
+        }
+        file.writeText(lines.joinToString("\n") + "\n")
+    }
+}
+

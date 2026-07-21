@@ -159,6 +159,11 @@ fun HomeScreen(viewModel: MainViewModel) {
                 }
             }
 
+            if (viewModel.isDemoMode) {
+                Spacer(modifier = Modifier.height(12.dp))
+                com.example.ui.components.DemoModeBanner(isDemoMode = true)
+            }
+
             Spacer(modifier = Modifier.height(28.dp))
 
             // Greeting layout

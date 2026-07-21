@@ -34,6 +34,9 @@ class MainViewModel(
 
     val database = (application as AIPALApplication).database
 
+    val isDemoMode: Boolean
+        get() = com.example.BuildConfig.GEMINI_API_KEY.isEmpty() || com.example.BuildConfig.GEMINI_API_KEY == "MY_GEMINI_API_KEY"
+
     // Global navigation/screen states
     var currentScreen by mutableStateOf("home") // "home", "chat", "agents", "memories", "settings", "subscription", "pdf", "image_gen"
     var activeConversationId by mutableStateOf<String?>(null)

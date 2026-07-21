@@ -225,12 +225,21 @@ fun ChatScreen(viewModel: MainViewModel) {
             }
         }
     ) { innerPadding ->
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
                 .background(MaterialTheme.colorScheme.background)
         ) {
+            if (viewModel.isDemoMode) {
+                com.example.ui.components.DemoModeBanner(isDemoMode = true, modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp))
+            }
+
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+            ) {
             if (messages.isEmpty() && !isGenerating) {
                 // Empty state greeting
                 Column(
@@ -290,6 +299,7 @@ fun ChatScreen(viewModel: MainViewModel) {
             }
         }
     }
+}
 }
 
 @Composable

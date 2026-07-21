@@ -88,6 +88,13 @@ fun PdfScreen(viewModel: MainViewModel) {
             contentPadding = PaddingValues(bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            if (viewModel.isDemoMode) {
+                item {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    com.example.ui.components.DemoModeBanner(isDemoMode = true)
+                }
+            }
+
             item {
                 Spacer(modifier = Modifier.height(12.dp))
                 // Top uploading action banner

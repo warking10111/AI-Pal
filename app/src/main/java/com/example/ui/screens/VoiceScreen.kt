@@ -99,6 +99,11 @@ fun VoiceScreen(viewModel: MainViewModel) {
         ) {
             Spacer(modifier = Modifier.height(60.dp))
 
+            if (viewModel.isDemoMode) {
+                com.example.ui.components.DemoModeBanner(isDemoMode = true, modifier = Modifier.padding(horizontal = 16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+
             // Subtitle state info
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
